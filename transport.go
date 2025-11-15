@@ -65,7 +65,7 @@ func (p *Plugin) serveSSE() error {
 		}()
 
 		// Create SSE transport for this connection
-		transport := mcp.NewSSEServerTransport("/sse", nil)
+		transport := mcp.NewSSETransport("/sse", w, r)
 
 		// Connect server to transport with proper context
 		_, err = p.mcpServer.Connect(r.Context(), transport, nil)
@@ -77,9 +77,6 @@ func (p *Plugin) serveSSE() error {
 			http.Error(w, "Failed to establish SSE connection", http.StatusInternalServerError)
 			return
 		}
-
-		// Serve the SSE connection
-		transport.ServeHTTP(w, r)
 	})
 
 	// Create HTTP server
@@ -105,7 +102,7 @@ func (p *Plugin) serveStdio() error {
 	const op = errors.Op("mcp_serve_stdio")
 
 	// Create stdio transport
-	transport := mcp.NewStdioServerTransport()
+	transport := mcp.NewStdioTransport()
 
 	// Generate session ID
 	sessionID := uuid.New().String()

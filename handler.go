@@ -11,11 +11,11 @@ import (
 )
 
 // sendEvent sends an event to PHP worker via WorkerPool
-func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, payload interface{}) ([]byte, error) {
+func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, payloadData interface{}) ([]byte, error) {
 	const op = errors.Op("mcp_send_event")
 
 	// Marshal payload to JSON
-	payloadJSON, err := json.Marshal(payload)
+	payloadJSON, err := json.Marshal(payloadData)
 	if err != nil {
 		return nil, errors.E(op, fmt.Errorf("failed to marshal payload: %w", err))
 	}
@@ -38,7 +38,7 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 	}
 
 	// Create payload for worker
-	workerPayload := payload.Payload{
+	workerPayload := &payload.Payload{
 		Context: payloadJSON,
 		Body:    payloadJSON,
 	}
@@ -53,7 +53,7 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 	stopCh := make(chan struct{}, 1)
 
 	// Execute on pool
-	responseCh, err := p.pool.Exec(ctx, &workerPayload, stopCh)
+	responseCh, err := p.pool.Exec(ctx, workerPayload, stopCh)
 	if err != nil {
 		return nil, errors.E(op, fmt.Errorf("worker execution failed: %w", err))
 	}
@@ -80,13 +80,13 @@ func (p *Plugin) authenticateSession(ctx context.Context, sessionID string, cred
 	}
 
 	// Create payload
-	payload := &ClientConnectedPayload{
+	payloadData := &ClientConnectedPayload{
 		SessionID:   sessionID,
 		Credentials: credentials,
 	}
 
 	// Send event to PHP
-	phpResp, err := p.sendEvent(ctx, sessionID, EventClientConnected, payload)
+	phpResp, err := p.sendEvent(ctx, sessionID, EventClientConnected, payloadData)
 	if err != nil {
 		return "", errors.E(op, err)
 	}

@@ -149,7 +149,7 @@ func (p *Plugin) createToolHandler(toolName string) func(context.Context, *mcp.C
 				mcpContent[i] = &mcp.TextContent{Text: c.Text}
 			case "image":
 				// Image data should be base64 encoded string
-				mcpContent[i] = &mcp.ImageContent{Data: c.Data, MIMEType: c.MimeType}
+				mcpContent[i] = &mcp.ImageContent{Data: []byte(c.Data), MIMEType: c.MimeType}
 			case "resource":
 				// For resource content, use text content as fallback
 				mcpContent[i] = &mcp.TextContent{Text: c.Text}
