@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/roadrunner-server/api/v4/plugins/v4/jobs"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/pool/payload"
 	"go.uber.org/zap"
 )
 
@@ -27,10 +27,10 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 
 	// Build headers
 	headers := map[string][]string{
-		"X-MCP-Event":   {eventName},
-		"X-Session-ID":  {sessionID},
-		"Content-Type":  {"application/json"},
-		"X-MCP-Method":  {"POST"},
+		"X-MCP-Event":  {eventName},
+		"X-Session-ID": {sessionID},
+		"Content-Type": {"application/json"},
+		"X-MCP-Method": {"POST"},
 	}
 
 	if sessionInfo != nil && sessionInfo.Token != "" {
@@ -38,10 +38,8 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 	}
 
 	// Create payload for worker
-	workerPayload := &jobs.Payload{
-		Job:     "mcp.event",
-		ID:      fmt.Sprintf("%s-%s", sessionID, eventName),
-		Headers: headers,
+	workerPayload := &payload.Payload{
+		Context: payloadJSON,
 		Body:    payloadJSON,
 	}
 
@@ -51,22 +49,13 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 		zap.String("session_id", sessionID),
 	)
 
-	// Get worker from pool
-	exec, err := p.pool.Exec(ctx, workerPayload)
+	// Execute on pool
+	response, err := p.pool.Exec(ctx, workerPayload)
 	if err != nil {
 		return nil, errors.E(op, fmt.Errorf("worker execution failed: %w", err))
 	}
 
-	// Read response
-	for response := range exec {
-		if response.Error() != nil {
-			return nil, errors.E(op, response.Error())
-		}
-
-		return response.Body(), nil
-	}
-
-	return nil, errors.E(op, errors.Str("no response from worker"))
+	return response.Body(), nil
 }
 
 // authenticateSession authenticates a new client session via PHP worker

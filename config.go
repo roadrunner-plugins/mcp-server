@@ -3,9 +3,8 @@ package mcp
 import (
 	"time"
 
-	"github.com/roadrunner-server/api/v4/plugins/v4/jobs"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/sdk/v4/pool"
+	"github.com/roadrunner-server/pool"
 )
 
 const PluginName = "mcp"

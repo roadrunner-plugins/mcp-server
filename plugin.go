@@ -10,8 +10,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"
-	poolImpl "github.com/roadrunner-server/sdk/v4/pool"
-	staticPool "github.com/roadrunner-server/sdk/v4/pool/static_pool"
+	"github.com/roadrunner-server/pool"
+	"github.com/roadrunner-server/pool/static_pool"
 	"go.uber.org/zap"
 )
 
@@ -26,9 +26,9 @@ type Plugin struct {
 	// MCP server instance
 	mcpServer *mcp.Server
 
-	// RoadRunner components
+	// RoadRunnercomponents
 	server Server
-	pool   poolImpl.Pool
+	pool   pool.Pool
 
 	// Tool registry (name -> definition)
 	tools map[string]*mcp.Tool
@@ -49,7 +49,7 @@ type Plugin struct {
 
 // Server interface for creating worker pools
 type Server interface {
-	NewPool(ctx context.Context, cfg *poolImpl.Config, env map[string]string, logger *zap.Logger) (*staticPool.Pool, error)
+	NewPool(ctx context.Context, cfg *pool.Config, env map[string]string, logger *zap.Logger) (*static_pool.Pool, error)
 }
 
 // Configurer interface for configuration access
@@ -218,7 +218,7 @@ func (p *Plugin) MetricsCollector() []interface{} {
 }
 
 // Workers returns worker states for metrics
-func (p *Plugin) Workers() []*staticPool.WorkerState {
+func (p *Plugin) Workers() []*static_pool.WorkerState {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -227,10 +227,10 @@ func (p *Plugin) Workers() []*staticPool.WorkerState {
 	}
 
 	workers := p.pool.Workers()
-	states := make([]*staticPool.WorkerState, 0, len(workers))
+	states := make([]*static_pool.WorkerState, 0, len(workers))
 
 	for _, w := range workers {
-		state, err := staticPool.NewWorkerState(w)
+		state, err := static_pool.NewWorkerState(w)
 		if err != nil {
 			continue
 		}
