@@ -10,8 +10,8 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/pool"
-	"github.com/roadrunner-server/pool/static_pool"
+	"github.com/roadrunner-server/pool/pool"
+	"github.com/roadrunner-server/pool/pool/static_pool"
 	"go.uber.org/zap"
 )
 

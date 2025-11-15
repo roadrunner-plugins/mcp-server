@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/roadrunner-server/errors"
-	"github.com/roadrunner-server/pool"
+	"github.com/roadrunner-server/pool/pool"
 )
 
 const PluginName = "mcp"

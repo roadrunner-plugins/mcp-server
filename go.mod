@@ -9,6 +9,8 @@ require (
 	github.com/roadrunner-server/api/v4 v4.18.0
 	github.com/roadrunner-server/endure/v2 v2.6.2
 	github.com/roadrunner-server/errors v1.4.1
-	github.com/roadrunner-server/pool v1.1.3
+	github.com/roadrunner-server/pool/payload v1.1.3
+	github.com/roadrunner-server/pool/pool v1.1.3
+	github.com/roadrunner-server/pool/pool/static_pool v1.1.3
 	go.uber.org/zap v1.27.0
 )
