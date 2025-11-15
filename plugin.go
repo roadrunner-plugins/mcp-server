@@ -10,8 +10,11 @@ import (
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/roadrunner-server/endure/v2/dep"
 	"github.com/roadrunner-server/errors"
+	"github.com/roadrunner-server/pool/payload"
 	"github.com/roadrunner-server/pool/pool"
 	"github.com/roadrunner-server/pool/pool/static_pool"
+	"github.com/roadrunner-server/pool/state/process"
+	"github.com/roadrunner-server/pool/worker"
 	"go.uber.org/zap"
 )
 
@@ -28,7 +31,7 @@ type Plugin struct {
 
 	// RoadRunnercomponents
 	server Server
-	pool   pool.Pool
+	pool   Pool
 
 	// Tool registry (name -> definition)
 	tools map[string]*mcp.Tool
@@ -45,6 +48,16 @@ type Plugin struct {
 
 	// Metrics
 	statsExporter *StatsExporter
+}
+
+// Pool interface for worker pool operations
+type Pool interface {
+	Workers() []*worker.Process
+	Exec(ctx context.Context, p *payload.Payload, stopCh chan struct{}) (chan *static_pool.PExec, error)
+	RemoveWorker(ctx context.Context) error
+	AddWorker() error
+	Reset(ctx context.Context) error
+	Destroy(ctx context.Context)
 }
 
 // Server interface for creating worker pools
@@ -218,7 +231,7 @@ func (p *Plugin) MetricsCollector() []interface{} {
 }
 
 // Workers returns worker states for metrics
-func (p *Plugin) Workers() []*static_pool.WorkerState {
+func (p *Plugin) Workers() []*process.State {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -227,10 +240,10 @@ func (p *Plugin) Workers() []*static_pool.WorkerState {
 	}
 
 	workers := p.pool.Workers()
-	states := make([]*static_pool.WorkerState, 0, len(workers))
+	states := make([]*process.State, 0, len(workers))
 
 	for _, w := range workers {
-		state, err := static_pool.NewWorkerState(w)
+		state, err := process.WorkerProcessState(w)
 		if err != nil {
 			continue
 		}
@@ -248,14 +261,8 @@ func (p *Plugin) createMCPServer() error {
 		Version: "1.0.0",
 	}
 
-	// Configure server options
-	opts := &mcp.ServerOptions{
-		Capabilities: mcp.ServerCapabilities{
-			Tools: &mcp.ToolsCapability{
-				ListChanged: boolPtr(p.cfg.Tools.NotifyClientsOnChange),
-			},
-		},
-	}
+	// Configure server options - note: v1.0.0 API doesn't have Capabilities field
+	opts := &mcp.ServerOptions{}
 
 	// Create the server
 	p.mcpServer = mcp.NewServer(impl, opts)

@@ -49,13 +49,25 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 		zap.String("session_id", sessionID),
 	)
 
+	// Create stop channel
+	stopCh := make(chan struct{}, 1)
+
 	// Execute on pool
-	response, err := p.pool.Exec(ctx, workerPayload)
+	responseCh, err := p.pool.Exec(ctx, workerPayload, stopCh)
 	if err != nil {
 		return nil, errors.E(op, fmt.Errorf("worker execution failed: %w", err))
 	}
 
-	return response.Body(), nil
+	// Read response from channel
+	for response := range responseCh {
+		if response.Error() != nil {
+			return nil, errors.E(op, response.Error())
+		}
+
+		return response.Body(), nil
+	}
+
+	return nil, errors.E(op, errors.Str("no response from worker"))
 }
 
 // authenticateSession authenticates a new client session via PHP worker

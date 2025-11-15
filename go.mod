@@ -12,5 +12,7 @@ require (
 	github.com/roadrunner-server/pool/payload v1.1.3
 	github.com/roadrunner-server/pool/pool v1.1.3
 	github.com/roadrunner-server/pool/pool/static_pool v1.1.3
+	github.com/roadrunner-server/pool/state/process v1.1.3
+	github.com/roadrunner-server/pool/worker v1.1.3
 	go.uber.org/zap v1.27.0
 )

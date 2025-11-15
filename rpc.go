@@ -33,7 +33,7 @@ func (s *rpcService) DeclareTools(req *DeclareToolsRequest, resp *DeclareToolsRe
 		// Create MCP Tool structure
 		tool := &mcp.Tool{
 			Name:        toolDef.Name,
-			Description: &toolDef.Description,
+			Description: toolDef.Description,
 			InputSchema: toolDef.InputSchema,
 		}
 
@@ -41,14 +41,7 @@ func (s *rpcService) DeclareTools(req *DeclareToolsRequest, resp *DeclareToolsRe
 		handler := s.plugin.createToolHandler(toolDef.Name)
 
 		// Add tool to MCP server using AddTool function
-		err := mcp.AddTool(s.plugin.mcpServer, tool, handler)
-		if err != nil {
-			s.plugin.log.Error("failed to add tool",
-				zap.String("tool", toolDef.Name),
-				zap.Error(err),
-			)
-			return errors.E(op, fmt.Errorf("failed to add tool %s: %w", toolDef.Name, err))
-		}
+		mcp.AddTool(s.plugin.mcpServer, tool, handler)
 
 		// Update registry
 		s.plugin.tools[toolDef.Name] = tool
@@ -97,10 +90,12 @@ func (s *rpcService) RemoveTools(names []string, _ *struct{}) error {
 // createToolHandler creates a tool handler that delegates execution to PHP workers
 func (p *Plugin) createToolHandler(toolName string) func(context.Context, *mcp.CallToolRequest, map[string]interface{}) (*mcp.CallToolResult, interface{}, error) {
 	return func(ctx context.Context, request *mcp.CallToolRequest, args map[string]interface{}) (*mcp.CallToolResult, interface{}, error) {
-		// Get session from request metadata
+		// Session ID from params (if available)
 		sessionID := "unknown"
-		if request.Meta.SessionID != "" {
-			sessionID = request.Meta.SessionID
+		if request.Params != nil && request.Params.Meta != nil {
+			if sid, ok := request.Params.Meta["sessionId"]; ok {
+				sessionID = fmt.Sprintf("%v", sid)
+			}
 		}
 
 		p.log.Debug("tool execution requested",
