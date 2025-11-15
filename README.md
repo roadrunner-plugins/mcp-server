@@ -11,12 +11,6 @@ A RoadRunner plugin that enables PHP applications to expose MCP (Model Context P
 - **Worker Pool Integration** - Uses RoadRunner's efficient PHP worker pool
 - **Metrics & Monitoring** - Prometheus metrics for observability
 
-## Installation
-
-```bash
-go get github.com/roadrunner-plugins/mcp
-```
-
 ## Configuration
 
 ### Minimal Configuration
