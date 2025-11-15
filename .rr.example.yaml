@@ -1,0 +1,55 @@
+version: "3"
+
+rpc:
+  listen: tcp://127.0.0.1:6001
+
+server:
+  command: "php worker.php"
+  relay: pipes
+
+mcp:
+  # Transport configuration (only one transport at a time)
+  transport: "sse"  # Options: "sse", "stdio"
+  
+  # Address for SSE transports (ignored for stdio)
+  address: "127.0.0.1:9333"
+  
+  # Worker pool configuration
+  pool:
+    num_workers: 4
+    max_jobs: 100
+    allocate_timeout: 60s
+    destroy_timeout: 60s
+    supervisor:
+      watch_tick: 1s
+      ttl: 0s          # Workers are long-lived (no TTL)
+      idle_ttl: 300s   # Kill idle workers after 5 minutes
+      exec_ttl: 30s    # Tool execution timeout
+      max_worker_memory: 256
+  
+  # Client session configuration
+  clients:
+    max_connections: 100    # Maximum concurrent MCP clients
+    read_timeout: 60s       # Read timeout for client messages
+    write_timeout: 10s      # Write timeout for responses
+    ping_interval: 30s      # Keep-alive ping interval (SSE)
+  
+  # Tool management
+  tools:
+    notify_clients_on_change: true  # Send notifications/tools/list_changed
+  
+  # Authentication
+  auth:
+    enabled: true           # Enable authentication
+    skip_for_stdio: true    # Skip auth for stdio transport
+  
+  # Logging
+  debug: false              # Enable verbose MCP protocol logging
+
+logs:
+  mode: production
+  level: info
+  encoding: console
+
+metrics:
+  address: "127.0.0.1:2112"

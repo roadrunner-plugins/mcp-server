@@ -1,0 +1,16 @@
+name: mcp-server
+owner: roadrunner-plugins
+description: "Model Context Protocol (MCP) server plugin that enables PHP applications to expose MCP-compatible tools to AI clients without implementing connection management or protocol details"
+category: network
+dependencies:
+  - logger
+  - server
+  - rpc
+  - metrics
+license: MIT
+keywords:
+  - mcp
+  - ai
+  - claude
+  - tools
+  - protocol
