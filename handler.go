@@ -38,7 +38,7 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 	}
 
 	// Create payload for worker
-	workerPayload := &payload.Payload{
+	workerPayload := payload.Payload{
 		Context: payloadJSON,
 		Body:    payloadJSON,
 	}
@@ -53,7 +53,7 @@ func (p *Plugin) sendEvent(ctx context.Context, sessionID, eventName string, pay
 	stopCh := make(chan struct{}, 1)
 
 	// Execute on pool
-	responseCh, err := p.pool.Exec(ctx, workerPayload, stopCh)
+	responseCh, err := p.pool.Exec(ctx, &workerPayload, stopCh)
 	if err != nil {
 		return nil, errors.E(op, fmt.Errorf("worker execution failed: %w", err))
 	}

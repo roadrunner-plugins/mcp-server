@@ -46,7 +46,11 @@ func (p *Plugin) serveSSE() error {
 		}
 
 		// Track session
-		p.trackSession(sessionID, sessionToken, "sse", credentials)
+		credentialsMap := make(map[string]interface{})
+		for k, v := range credentials {
+			credentialsMap[k] = v
+		}
+		p.trackSession(sessionID, sessionToken, "sse", credentialsMap)
 
 		p.log.Info("SSE client connected",
 			zap.String("session_id", sessionID),
@@ -61,10 +65,11 @@ func (p *Plugin) serveSSE() error {
 		}()
 
 		// Create SSE transport for this connection
-		transport := mcp.NewSSEServerTransport(fmt.Sprintf("/sse/%s", sessionID), nil)
+		transport := mcp.NewSSEServerTransport("/sse", nil)
 
-		// Connect server to transport
-		if err := p.mcpServer.Connect(transport); err != nil {
+		// Connect server to transport with proper context
+		_, err = p.mcpServer.Connect(r.Context(), transport, nil)
+		if err != nil {
 			p.log.Error("failed to connect SSE transport",
 				zap.String("session_id", sessionID),
 				zap.Error(err),
@@ -126,7 +131,8 @@ func (p *Plugin) serveStdio() error {
 	}()
 
 	// Connect server to transport - this blocks until connection ends
-	if err := p.mcpServer.Connect(transport); err != nil {
+	_, err = p.mcpServer.Connect(p.ctx, transport, nil)
+	if err != nil {
 		return errors.E(op, fmt.Errorf("failed to connect stdio transport: %w", err))
 	}
 

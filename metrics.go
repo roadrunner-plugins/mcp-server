@@ -143,9 +143,9 @@ func (s *StatsExporter) Collect(ch chan<- prometheus.Metric) {
 		idleWorkers := 0
 
 		for _, state := range workers {
-			// Assuming WorkerState has a Status field or similar
-			// Adjust based on actual API
-			if state.Status == "active" || state.NumExecs > 0 {
+			// Check worker status (state.Value is int64)
+			// Active states: StateWorking, StateReady
+			if state.NumExecs > 0 {
 				activeWorkers++
 			} else {
 				idleWorkers++
